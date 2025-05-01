@@ -145,7 +145,7 @@ if __name__ == "__main__":
     for file in xlsx_files:
         # 读取 Excel 文件
         df = pd.read_excel(file)
-
+        # 应用标准化
         save_to_json(file, df)
         
         # # 显示读取的数据
