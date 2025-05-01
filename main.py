@@ -116,24 +116,47 @@ def parse_hex(hex_string):
         return {"error": str(e)}
 
 
+def save_to_json(file, df):
+    # 确保输出目录存在
+    output_dir = './hex_jsons/'
+    os.makedirs(output_dir, exist_ok=True)
+
+    # 修复文件名提取逻辑（避免路径层级问题）
+    filename = os.path.basename(file).replace('.xlsx', '.json')
+    json_filename = os.path.join(output_dir, filename)
+
+    # 提取前几行数据（保持为 DataFrame）
+    parsed_hex_data = df[['Parsed_Hex']].head()  # 确保是 DataFrame，不是 Series
+
+    # 保存为格式化 JSON（indent=4 表示缩进层级）
+    parsed_hex_data.to_json(
+        json_filename,
+        orient='records',  # 按行保存为数组格式
+        force_ascii=False,
+        indent=4          # 关键参数：添加缩进和换行
+    )
+
+    print(f"JSON 文件已保存至: {json_filename}")
+
+
 if __name__ == "__main__":
     recursive_listdir(r'./xlsx')
-    print(xlsx_files)
-    print(len(xlsx_files))
 
     for file in xlsx_files:
         # 读取 Excel 文件
         df = pd.read_excel(file)
-    
-        # 显示读取的数据
-        print(df.head())  # 输出前几行数据进行查看
 
-        # 对 Hex 列进行解析
-        df['Parsed_Hex'] = df['Hex'].apply(parse_hex)
+        save_to_json(file, df)
+        
+        # # 显示读取的数据
+        # print(df.head())  # 输出前几行数据进行查看
 
-        # 显示解析后的数据
-        print(df['Parsed_Hex'].head())  # 输出前几行解析后的数据进行查看
-        # 将解析后的数据保存到新的 Excel 文件
-        df.to_excel(file, index=False)  # 保存到原文件，覆盖原数据
-        print(f"解析后的数据已保存到 {file}")
+        # # 对 Hex 列进行解析
+        # df['Parsed_Hex'] = df['Hex'].apply(parse_hex)
+
+        # # 显示解析后的数据
+        # print(df['Parsed_Hex'].head())  # 输出前几行解析后的数据进行查看
+        # # 将解析后的数据保存到新的 Excel 文件
+        # df.to_excel(file, index=False)  # 保存到原文件，覆盖原数据
+        # print(f"解析后的数据已保存到 {file}")
 

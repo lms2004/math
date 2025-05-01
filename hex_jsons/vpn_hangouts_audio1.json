@@ -1,0 +1,17 @@
+[
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 52, 'id': 39254, 'flags': {'DF': True, 'MF': False}, 'frag': 0, 'ttl': 64, 'proto': 6, 'chksum': 58159, 'src': '10.8.0.14', 'dst': '216.58.219.237'}, 'tcp': {'sport': 33015, 'dport': 443, 'seq': 2180372308, 'ack': 348759560, 'dataofs': 8, 'flags': {'ACK': False, 'SYN': False, 'FIN': False, 'PSH': False}, 'window': 254, 'chksum': 23114, 'urgptr': 0}, 'tls_records': []}"
+    },
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 52, 'id': 24508, 'flags': {'DF': False, 'MF': False}, 'frag': 0, 'ttl': 54, 'proto': 6, 'chksum': 26314, 'src': '216.58.219.237', 'dst': '10.8.0.14'}, 'tcp': {'sport': 443, 'dport': 33015, 'seq': 348759560, 'ack': 2180372309, 'dataofs': 8, 'flags': {'ACK': False, 'SYN': False, 'FIN': False, 'PSH': False}, 'window': 358, 'chksum': 54786, 'urgptr': 0}, 'tls_records': []}"
+    },
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 52, 'id': 49068, 'flags': {'DF': True, 'MF': False}, 'frag': 0, 'ttl': 64, 'proto': 6, 'chksum': 18490, 'src': '10.8.0.14', 'dst': '173.194.123.5'}, 'tcp': {'sport': 53933, 'dport': 443, 'seq': 3950116468, 'ack': 2443150321, 'dataofs': 8, 'flags': {'ACK': False, 'SYN': False, 'FIN': False, 'PSH': False}, 'window': 317, 'chksum': 43127, 'urgptr': 0}, 'tls_records': []}"
+    },
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 52, 'id': 20244, 'flags': {'DF': False, 'MF': False}, 'frag': 0, 'ttl': 54, 'proto': 6, 'chksum': 723, 'src': '173.194.123.5', 'dst': '10.8.0.14'}, 'tcp': {'sport': 443, 'dport': 53933, 'seq': 2443150321, 'ack': 3950116469, 'dataofs': 8, 'flags': {'ACK': False, 'SYN': False, 'FIN': False, 'PSH': False}, 'window': 377, 'chksum': 9302, 'urgptr': 0}, 'tls_records': []}"
+    },
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 61, 'id': 11553, 'flags': {'DF': True, 'MF': False}, 'frag': 0, 'ttl': 64, 'proto': 17, 'chksum': 35753, 'src': '10.8.0.14', 'dst': '131.202.244.5'}, 'tcp': {}, 'tls_records': []}"
+    }
+]

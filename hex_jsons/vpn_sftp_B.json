@@ -1,0 +1,17 @@
+[
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 115, 'id': 29110, 'flags': {'DF': False, 'MF': False}, 'frag': 0, 'ttl': 49, 'proto': 6, 'chksum': 55449, 'src': '74.125.226.38', 'dst': '10.8.8.138'}, 'tcp': {'sport': 443, 'dport': 51827, 'seq': 940735029, 'ack': 2430327382, 'dataofs': 8, 'flags': {'ACK': False, 'SYN': False, 'FIN': False, 'PSH': False}, 'window': 341, 'chksum': 1805, 'urgptr': 0}, 'tls_records': [{'content_type': 23, 'tls_version': '0303', 'length': 58, 'encrypted_data': '00000000000000048f98458da2ee371ff6412dcdd26a60c46fd11766f51ee7ea4ae969de49202989752dbe684de6c7b2406126c6215f0ca4a30d'}]}"
+    },
+    {
+        "Parsed_Hex":"{'error': \"'FlagValue' object has no attribute 'FIN'\"}"
+    },
+    {
+        "Parsed_Hex":"{'error': \"'FlagValue' object has no attribute 'FIN'\"}"
+    },
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 52, 'id': 29266, 'flags': {'DF': False, 'MF': False}, 'frag': 0, 'ttl': 49, 'proto': 6, 'chksum': 55356, 'src': '74.125.226.38', 'dst': '10.8.8.138'}, 'tcp': {'sport': 443, 'dport': 51827, 'seq': 940735093, 'ack': 2430327383, 'dataofs': 8, 'flags': {'ACK': False, 'SYN': False, 'FIN': False, 'PSH': False}, 'window': 341, 'chksum': 65524, 'urgptr': 0}, 'tls_records': []}"
+    },
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 52, 'id': 6616, 'flags': {'DF': True, 'MF': False}, 'frag': 0, 'ttl': 64, 'proto': 6, 'chksum': 8629, 'src': '10.8.8.138', 'dst': '64.233.171.188'}, 'tcp': {'sport': 45325, 'dport': 5228, 'seq': 2921550109, 'ack': 3552700253, 'dataofs': 8, 'flags': {'ACK': False, 'SYN': False, 'FIN': False, 'PSH': False}, 'window': 245, 'chksum': 58342, 'urgptr': 0}, 'tls_records': []}"
+    }
+]

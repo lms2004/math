@@ -1,0 +1,17 @@
+[
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 16, 'len': 76, 'id': 9360, 'flags': {'DF': True, 'MF': False}, 'frag': 0, 'ttl': 64, 'proto': 17, 'chksum': 25222, 'src': '10.8.8.110', 'dst': '199.233.217.27'}, 'tcp': {}, 'tls_records': []}"
+    },
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 76, 'id': 8161, 'flags': {'DF': False, 'MF': False}, 'frag': 0, 'ttl': 52, 'proto': 17, 'chksum': 45893, 'src': '199.233.217.27', 'dst': '10.8.8.110'}, 'tcp': {}, 'tls_records': []}"
+    },
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 52, 'id': 9679, 'flags': {'DF': True, 'MF': False}, 'frag': 0, 'ttl': 64, 'proto': 6, 'chksum': 23062, 'src': '10.8.8.110', 'dst': '216.58.208.46'}, 'tcp': {'sport': 33063, 'dport': 80, 'seq': 2756443849, 'ack': 3631182616, 'dataofs': 8, 'flags': {'ACK': False, 'SYN': False, 'FIN': False, 'PSH': False}, 'window': 241, 'chksum': 60841, 'urgptr': 0}, 'tls_records': []}"
+    },
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 52, 'id': 45887, 'flags': {'DF': False, 'MF': False}, 'frag': 0, 'ttl': 54, 'proto': 6, 'chksum': 5798, 'src': '216.58.208.46', 'dst': '10.8.8.110'}, 'tcp': {'sport': 80, 'dport': 33063, 'seq': 3631182616, 'ack': 2756443850, 'dataofs': 8, 'flags': {'ACK': False, 'SYN': False, 'FIN': False, 'PSH': False}, 'window': 341, 'chksum': 60702, 'urgptr': 0}, 'tls_records': []}"
+    },
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 52, 'id': 9680, 'flags': {'DF': True, 'MF': False}, 'frag': 0, 'ttl': 64, 'proto': 6, 'chksum': 23061, 'src': '10.8.8.110', 'dst': '216.58.208.46'}, 'tcp': {'sport': 33063, 'dport': 80, 'seq': 2756443849, 'ack': 3631182616, 'dataofs': 8, 'flags': {'ACK': False, 'SYN': False, 'FIN': False, 'PSH': False}, 'window': 241, 'chksum': 48159, 'urgptr': 0}, 'tls_records': []}"
+    }
+]

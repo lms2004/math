@@ -1,0 +1,17 @@
+[
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 65, 'id': 46216, 'flags': {'DF': True, 'MF': False}, 'frag': 0, 'ttl': 64, 'proto': 17, 'chksum': 28165, 'src': '10.8.8.130', 'dst': '198.7.63.141'}, 'tcp': {}, 'tls_records': []}"
+    },
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 65, 'id': 2579, 'flags': {'DF': True, 'MF': False}, 'frag': 0, 'ttl': 64, 'proto': 17, 'chksum': 61640, 'src': '10.8.8.130', 'dst': '78.46.223.24'}, 'tcp': {}, 'tls_records': []}"
+    },
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 65, 'id': 46217, 'flags': {'DF': True, 'MF': False}, 'frag': 0, 'ttl': 64, 'proto': 17, 'chksum': 28164, 'src': '10.8.8.130', 'dst': '198.7.63.141'}, 'tcp': {}, 'tls_records': []}"
+    },
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 268, 'id': 33193, 'flags': {'DF': True, 'MF': False}, 'frag': 0, 'ttl': 64, 'proto': 6, 'chksum': 64367, 'src': '10.8.8.130', 'dst': '216.58.210.14'}, 'tcp': {'sport': 45184, 'dport': 443, 'seq': 2406647707, 'ack': 401708744, 'dataofs': 8, 'flags': {'ACK': False, 'SYN': False, 'FIN': False, 'PSH': False}, 'window': 12595, 'chksum': 11935, 'urgptr': 0}, 'tls_records': [{'content_type': 23, 'tls_version': '0303', 'length': 211, 'encrypted_data': '000000000000009362645b32313076e96cdd613b42ceed2d54ae5538bcf9171d83ef7851d1dcce0d07c2e317f5782e6fc91b0412ba594aec413856f95842026cf574f87488ee500284d9059ffc351b71d155e2b9e1f1d4f81d8a259d55575eb3eac84929c8e78c58cdd4a2b4f3238055c5cb180c428828199448502aa7fd5b001ad7d6a66076035474e5f2fc1cd37a65b60e2e0a136cd9df499262a5632aebd69c5901b26ceab46b9be2f3227aaf94efd246b6597db12e7e3850bc53091ed0ab5cce6ccacb82067daa4fcb1aba97ebd136bd57'}]}"
+    },
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 241, 'id': 33194, 'flags': {'DF': True, 'MF': False}, 'frag': 0, 'ttl': 64, 'proto': 6, 'chksum': 64393, 'src': '10.8.8.130', 'dst': '216.58.210.14'}, 'tcp': {'sport': 45184, 'dport': 443, 'seq': 2406647923, 'ack': 401708744, 'dataofs': 8, 'flags': {'ACK': False, 'SYN': False, 'FIN': False, 'PSH': False}, 'window': 12595, 'chksum': 33425, 'urgptr': 0}, 'tls_records': [{'content_type': 23, 'tls_version': '0303', 'length': 184, 'encrypted_data': '0000000000000094a786a07463dd36522078a90f8589411d3c5dec5b3d4d13cf66b5463a4bd5451a74b8c61ecfd1ce22006edf9958ecfcfe8bf0f04b66651dfd9e7977a1340c8d352bbda80d8cbefe955e4bf140d817822bd9ef6dc47a6ae2c47cf8880e63b6bad27ef4f23b751f7b3ffe598dff3a75548e9f0ae36a5f47d9580c903741dccd3ded644ab96e663372b7d1f457ef01e3618ac65ef5f2dc11367cc967d8f7d4ef7d17c77a6115ca30bbd0fdd05958f340198d'}]}"
+    }
+]

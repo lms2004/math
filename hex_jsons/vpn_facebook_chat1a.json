@@ -1,0 +1,17 @@
+[
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 52, 'id': 50334, 'flags': {'DF': True, 'MF': False}, 'frag': 0, 'ttl': 64, 'proto': 6, 'chksum': 19543, 'src': '10.8.8.178', 'dst': '23.67.255.209'}, 'tcp': {'sport': 39273, 'dport': 443, 'seq': 2724309374, 'ack': 2933981933, 'dataofs': 8, 'flags': {'ACK': False, 'SYN': False, 'FIN': False, 'PSH': False}, 'window': 1444, 'chksum': 60485, 'urgptr': 0}, 'tls_records': []}"
+    },
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 52, 'id': 45640, 'flags': {'DF': True, 'MF': False}, 'frag': 0, 'ttl': 64, 'proto': 6, 'chksum': 24237, 'src': '10.8.8.178', 'dst': '23.67.255.209'}, 'tcp': {'sport': 39272, 'dport': 443, 'seq': 3010394168, 'ack': 2354884548, 'dataofs': 8, 'flags': {'ACK': False, 'SYN': False, 'FIN': False, 'PSH': False}, 'window': 1398, 'chksum': 603, 'urgptr': 0}, 'tls_records': []}"
+    },
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 52, 'id': 48444, 'flags': {'DF': True, 'MF': False}, 'frag': 0, 'ttl': 58, 'proto': 6, 'chksum': 22969, 'src': '23.67.255.209', 'dst': '10.8.8.178'}, 'tcp': {'sport': 443, 'dport': 39273, 'seq': 2933981933, 'ack': 2724309375, 'dataofs': 8, 'flags': {'ACK': False, 'SYN': False, 'FIN': False, 'PSH': False}, 'window': 922, 'chksum': 58440, 'urgptr': 0}, 'tls_records': []}"
+    },
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 52, 'id': 49220, 'flags': {'DF': True, 'MF': False}, 'frag': 0, 'ttl': 58, 'proto': 6, 'chksum': 22193, 'src': '23.67.255.209', 'dst': '10.8.8.178'}, 'tcp': {'sport': 443, 'dport': 39272, 'seq': 2354884548, 'ack': 3010394169, 'dataofs': 8, 'flags': {'ACK': False, 'SYN': False, 'FIN': False, 'PSH': False}, 'window': 821, 'chksum': 64148, 'urgptr': 0}, 'tls_records': []}"
+    },
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 52, 'id': 50516, 'flags': {'DF': True, 'MF': False}, 'frag': 0, 'ttl': 64, 'proto': 6, 'chksum': 59380, 'src': '10.8.8.178', 'dst': '23.63.99.130'}, 'tcp': {'sport': 42603, 'dport': 443, 'seq': 1939982354, 'ack': 1325898076, 'dataofs': 8, 'flags': {'ACK': False, 'SYN': False, 'FIN': False, 'PSH': False}, 'window': 810, 'chksum': 27487, 'urgptr': 0}, 'tls_records': []}"
+    }
+]

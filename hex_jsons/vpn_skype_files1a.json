@@ -1,0 +1,17 @@
+[
+    {
+        "Parsed_Hex":"{'error': \"'FlagValue' object has no attribute 'FIN'\"}"
+    },
+    {
+        "Parsed_Hex":"{'error': \"'FlagValue' object has no attribute 'FIN'\"}"
+    },
+    {
+        "Parsed_Hex":"{'error': \"'FlagValue' object has no attribute 'SYN'\"}"
+    },
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 72, 'id': 41779, 'flags': {'DF': True, 'MF': False}, 'frag': 0, 'ttl': 64, 'proto': 6, 'chksum': 64090, 'src': '10.8.8.134', 'dst': '130.88.8.60'}, 'tcp': {'sport': 56604, 'dport': 56289, 'seq': 1595197876, 'ack': 4019380174, 'dataofs': 8, 'flags': {'ACK': False, 'SYN': False, 'FIN': False, 'PSH': False}, 'window': 315, 'chksum': 65032, 'urgptr': 0}, 'tls_records': []}"
+    },
+    {
+        "Parsed_Hex":"{'ip': {'version': 4, 'ihl': 5, 'tos': 0, 'len': 72, 'id': 55394, 'flags': {'DF': True, 'MF': False}, 'frag': 0, 'ttl': 64, 'proto': 6, 'chksum': 24227, 'src': '10.8.8.134', 'dst': '174.21.67.7'}, 'tcp': {'sport': 48866, 'dport': 36864, 'seq': 2198632850, 'ack': 2779113907, 'dataofs': 8, 'flags': {'ACK': False, 'SYN': False, 'FIN': False, 'PSH': False}, 'window': 229, 'chksum': 55320, 'urgptr': 0}, 'tls_records': []}"
+    }
+]
