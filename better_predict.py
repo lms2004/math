@@ -6,9 +6,6 @@ import numpy as np
 import os
 from scipy.stats import entropy
 
-# ====================== 加载模型和编码器 ======================
-model = joblib.load('./models/better/xgboost_traffic_model.pkl')
-label_encoder = joblib.load('./models/better/label_encoder.pkl')
 
 # ====================== 特征提取函数 ======================
 def calculate_entropy(hex_str):
@@ -112,23 +109,46 @@ def load_and_process_test_data(file_path):
 if __name__ == "__main__":
     # 加载并处理测试数据
     test_file_path = './test.xlsx'  # 测试数据文件路径
+    output_df = pd.read_excel(test_file_path)
     test_df = load_and_process_test_data(test_file_path)
-
-    test_df = pd.get_dummies(test_df, columns=['proto'], dummy_na=True)
-
-    # 选择仅含有数值的列进行填充
-    numeric_columns = test_df.select_dtypes(include=[np.number]).columns
     
-    
-    imputer = SimpleImputer(strategy='mean')  # 使用均值填充缺失值
-    X_test_imputed = imputer.fit_transform(test_df[numeric_columns])
+
+    # 加载所有预处理对象
+    model = joblib.load('./models/better/xgboost_traffic_model.pkl')
+    label_encoder = joblib.load('./models/better/label_encoder.pkl')
+    proto_encoder = joblib.load('./models/better/proto_encoder.pkl')
+    imputer = joblib.load('./models/better/imputer.pkl')
+    train_columns = joblib.load('./models/better/train_columns.pkl')  # 加载训练时的列顺序
+
+    # ==== 关键修改1：强制列对齐 ====
+    # 处理proto编码
+    if 'proto' in test_df.columns:
+        proto_encoded = proto_encoder.transform(test_df[['proto']])
+        proto_encoded_df = pd.DataFrame(proto_encoded, columns=proto_encoder.get_feature_names_out(['proto']))
+        test_df = pd.concat([test_df.drop('proto', axis=1), proto_encoded_df], axis=1)
+    else:
+        proto_encoded_df = pd.DataFrame(columns=proto_encoder.get_feature_names_out(['proto']))
+        test_df = pd.concat([test_df, proto_encoded_df], axis=1)
+
+    # 填充缺失列（确保特征数量一致）
+    missing_cols = set(train_columns) - set(test_df.columns)
+    for col in missing_cols:
+        test_df[col] = 0  # 缺失列填充0
+
+    # 按训练时的列顺序排序（必须严格一致）
+    test_df = test_df[train_columns]
+
+    # ==== 关键修改2：正确的缺失值填充 ====
+    # 注意：这里不需要单独选择数值列，imputer已保存完整的填充策略
+    X_test_imputed = imputer.transform(test_df)  # 直接使用全部列
 
     # 进行预测
     y_pred = model.predict(X_test_imputed)
 
     # 将预测结果添加为新列
-    test_df['predicted_label'] = label_encoder.inverse_transform(y_pred)
+    output_df['predicted_label'] = label_encoder.inverse_transform(y_pred)
 
-    # 保存预测结果
-    test_df.to_excel('./test_with_predictions.xlsx', index=False)
-    print("预测结果已保存至 'test_with_predictions.xlsx'")
+    # 保存结果
+    output_path = './Outputs/test_better_predictions.xlsx'
+    output_df.to_excel(output_path, index=False)
+    print(f"预测结果已保存至 {output_path}")

@@ -10,6 +10,7 @@ from sklearn.metrics import classification_report
 import joblib
 from imblearn.over_sampling import SMOTE
 from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OneHotEncoder
 
 # ====================== 特征计算工具函数 ======================
 def calculate_entropy(hex_str):
@@ -151,8 +152,19 @@ if __name__ == "__main__":
     feature_df['label'] = feature_df['label'].astype(str)
 
     # ====================== 特征工程 ======================
-    # 处理类别型特征
-    feature_df = pd.get_dummies(feature_df, columns=['proto'], dummy_na=True)
+    proto_encoder = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
+
+    proto_encoded = proto_encoder.fit_transform(feature_df[['proto']])
+    proto_encoded_df = pd.DataFrame(proto_encoded, columns=proto_encoder.get_feature_names_out(['proto']))
+
+    # 合并编码后的特征
+    feature_df = pd.concat([feature_df.drop('proto', axis=1), proto_encoded_df], axis=1)
+
+    # 保存编码器
+    joblib.dump(proto_encoder, './models/better/proto_encoder.pkl')
+
+
+
 
     # 填充缺失值
     feature_df.fillna({
@@ -184,8 +196,11 @@ if __name__ == "__main__":
     )
 
     # ====================== 缺失值处理 ======================
-    imputer = SimpleImputer(strategy='mean')  # 使用均值填充缺失值
+    # 训练阶段保存 imputer
+    imputer = SimpleImputer(strategy='mean')
     X_train_imputed = imputer.fit_transform(X_train)
+    joblib.dump(imputer, './models/better/imputer.pkl')  # 保存填充器
+    
     X_test_imputed = imputer.transform(X_test)
 
     # ====================== SMOTE 过采样 ======================
@@ -223,4 +238,6 @@ if __name__ == "__main__":
     # 保存模型和编码器
     joblib.dump(model, './models/better/xgboost_traffic_model.pkl')
     joblib.dump(label_encoder, './models/better/label_encoder.pkl')
+    # 训练代码末尾添加：
+    joblib.dump(X_train.columns.tolist(), './models/better/train_columns.pkl')
     print("模型和编码器已保存！")

@@ -139,6 +139,6 @@ if __name__ == "__main__":
     # 添加预测结果到原始数据
     test_df['label'] = y_pred
     
-    # 保存结果
-    test_df.to_excel('test_with_predictions.xlsx', index=False)
-    print("预测完成，结果已保存到 test_with_predictions.xlsx")
+    output_path = 'Outputs/test_original_predictions.xlsx'
+    test_df.to_excel(output_path, index=False)
+    print(f"预测结果已保存到 {output_path}")
