@@ -137,7 +137,7 @@ if __name__ == "__main__":
     y_pred = label_encoder.inverse_transform(y_pred_encoded)
     
     # 添加预测结果到原始数据
-    test_df['label'] = y_pred
+    test_df['predicted_label'] = y_pred
     
     output_path = 'Outputs/test_original_predictions.xlsx'
     test_df.to_excel(output_path, index=False)
