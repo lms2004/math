@@ -63,9 +63,9 @@ theorem version_checked {L : Log} {n : NodeId} {t : Time} {v : Version}
   have hc := checkP_of_check (Reachable.entry hR)
   rcases hop with ⟨ly, q, src, ends, ex, hop⟩ | ⟨b, ex, hop⟩
   · simp only [CheckP, hop] at hc
-    exact ⟨l₁, e, l, some ly, ex, rfl, ht, hc.1, hc.2.2.2.2.2.2⟩
+    exact ⟨l₁, e, l, some ly, ex, rfl, ht, hc.1, hc.2.2.2.2.2.2.1⟩
   · simp only [CheckP, hop] at hc
-    exact ⟨l₁, e, l, layerOf l n, ex, rfl, ht, hc.1, hc.2.2.2.2⟩
+    exact ⟨l₁, e, l, layerOf l n, ex, rfl, ht, hc.1, hc.2.2.2.2.1⟩
 
 /-! ## 只有我能拍板 -/
 
@@ -80,6 +80,7 @@ def meOnly : Op → Bool
   | .ack _ _ => true
   | .deleteRecord _ => true
   | .correctAuthor _ _ => true
+  | .rejectDraft _ => true
   | _ => false
 
 /-- **定理（只有我能拍板）**：日志里每一条“拍板”类写入的发起者都是我。
@@ -327,9 +328,9 @@ theorem decisions_confirmed {L l₁ l : Log} {e : Entry} (hR : Reachable check L
   constructor
   · intro n ly q src ends v ex hop s hs hd
     simp only [CheckP, hop] at hc
-    exact (hc.2.2.2.2.2.2 s hs).2.2.2.2.2.2 hd
+    exact (hc.2.2.2.2.2.2.1 s hs).2.2.2.2.2.2 hd
   · intro n b v ex hop s hs hd
     simp only [CheckP, hop] at hc
-    exact (hc.2.2.2.2 s hs).2.2.2.2.2.2 hd
+    exact (hc.2.2.2.2.1 s hs).2.2.2.2.2.2 hd
 
 end MyLife

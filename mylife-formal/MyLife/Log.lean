@@ -224,6 +224,84 @@ def Cites (v : Version) (t : Target) : Prop :=
 instance (v : Version) (t : Target) : Decidable (Cites v t) := by
   unfold Cites; infer_instance
 
+/-! ## 过目里的稿子（推出） -/
+
+/-- 一份稿子：针对的节点、内容、基于的节点版本（写入时节点的最新版本，推出） -/
+structure DraftInfo where
+  node : NodeId
+  body : Version
+  base : Option Time
+  deriving DecidableEq, Repr
+
+/-- 写入时间为 d 的稿子 -/
+def draftAt : Log → Time → Option DraftInfo
+  | [], _ => none
+  | e :: l, d =>
+    if d = l.length then
+      match e.op with
+      | .draft n _ v _ => some ⟨n, v, (latest l n).map (fun x => x.1)⟩
+      | _ => none
+    else draftAt l d
+
+/-- 我不要的稿子 -/
+def rejectedTimes : Log → List Time
+  | [] => []
+  | e :: l =>
+    (match e.op with
+     | .rejectDraft d => [d]
+     | _ => []) ++ rejectedTimes l
+
+/-- 被并进新稿子的旧稿子 -/
+def mergedTimes : Log → List Time
+  | [] => []
+  | e :: l =>
+    (match e.op with
+     | .draft _ _ _ r => r.toList
+     | _ => []) ++ mergedTimes l
+
+/-- 被我确认写进版本的稿子 -/
+def confirmedTimes : Log → List Time
+  | [] => []
+  | e :: l =>
+    (match e.op with
+     | .newNode _ _ _ _ _ v _ => v.fromDraft.toList
+     | .writeVersion _ _ v _ => v.fromDraft.toList
+     | _ => []) ++ confirmedTimes l
+
+/-- 稿子 d 还在过目里，针对节点 n：没被拒绝、没被并进新稿子、没被确认 -/
+def Pending (l : Log) (d : Time) (n : NodeId) : Prop :=
+  (draftAt l d).map (fun di => di.node) = some n ∧ d ∉ rejectedTimes l ∧ d ∉ mergedTimes l ∧
+    d ∉ confirmedTimes l
+
+instance (l : Log) (d : Time) (n : NodeId) : Decidable (Pending l d n) := by
+  unfold Pending; infer_instance
+
+/-- 节点 n 在过目里的待定稿子 -/
+def pendingFor (l : Log) (n : NodeId) : List Time :=
+  (List.range l.length).filter (fun d => decide (Pending l d n))
+
+/-- 确认稿子时我删掉的句子（稿子里有、写进去的版本里没有的文本） -/
+def deletedTexts (l : Log) (v : Version) : List Text :=
+  match v.fromDraft with
+  | some d =>
+    match draftAt l d with
+    | some di => (di.body.body.map (fun s => s.text)).filter (fun x => x ∉ v.body.map (fun s => s.text))
+    | none => []
+  | none => []
+
+/-- 节点 n 上我拒绝过的内容：我不要的稿子里的句子，以及确认稿子时我删掉的句子 -/
+def rejectedTexts : Log → NodeId → List Text
+  | [], _ => []
+  | e :: l, n =>
+    (match e.op with
+     | .rejectDraft d =>
+       match draftAt l d with
+       | some di => if di.node = n then di.body.body.map (fun s => s.text) else []
+       | none => []
+     | .newNode m _ _ _ _ v _ => if m = n then deletedTexts l v else []
+     | .writeVersion m _ v _ => if m = n then deletedTexts l v else []
+     | _ => []) ++ rejectedTexts l n
+
 /-! ## 写入检查 -/
 
 def OptAll {α : Type} (o : Option α) (P : α → Prop) : Prop :=
@@ -320,6 +398,17 @@ def ReasonOK (l : Log) (r : Option FragId) : Prop :=
 instance (l : Log) (r : Option FragId) : Decidable (ReasonOK l r) := by
   unfold ReasonOK; infer_instance
 
+/-- 确认稿子写入版本时：稿子还在过目里、基于的是节点现在的最新版本；
+    重新分析不改动出处是我的话的句子，除非我在逐句确认里单独决定（把旧句放进确认清单） -/
+def ConfirmOK (l : Log) (n : NodeId) (v : Version) (ex : List Sentence) : Prop :=
+  OptAll v.fromDraft (fun d => Pending l d n ∧
+    OptAll (draftAt l d) (fun di => di.base = (latest l n).map (fun x => x.1)) ∧
+    OptAll (latest l n) (fun x => ∀ s ∈ x.2.body, fragAuthor l s.origin = some .me →
+      s ∈ v.body ∨ s ∈ ex))
+
+instance (l : Log) (n : NodeId) (v : Version) (ex : List Sentence) : Decidable (ConfirmOK l n v ex) := by
+  unfold ConfirmOK; infer_instance
+
 /-- 可以单独关掉的守卫；关掉后用来构造反例，说明每个守卫都是必要的 -/
 structure Guards where
   move : Bool := true     -- 移层守卫
@@ -343,16 +432,19 @@ def CheckP (g : Guards) (l : Log) (e : Entry) : Prop :=
       t ∉ voidedTimes l ∧ OptAll (recordAt l t) (fun r => isMeOrExt (fragAuthor l r.origin) = true)
   | .setAuthority _ _ => e.actor = .me
   | .link p n => (fragAt l p).isSome = true ∧ (created l n).isSome = true
-  | .draft _ p _ => e.actor = .agent ∧ (fragAt l p).isSome = true
+  | .draft n p v r => e.actor = .agent ∧ (fragAt l p).isSome = true ∧ pendingFor l n = r.toList ∧
+      ∀ s ∈ v.body, s.text ∉ rejectedTexts l n
+  | .rejectDraft d => e.actor = .me ∧ (draftAt l d).isSome = true ∧
+      OptAll (draftAt l d) (fun di => Pending l d di.node)
   | .newNode n ly q src ends v ex =>
       e.actor = .me ∧ created l n = none ∧ (∀ m ∈ src, (created l m).isSome = true) ∧
       (∀ m ∈ ends, active l m = true) ∧ v.kind = .cognitive ∧
-      (g.unique = true → UniqueOK l q ends) ∧ VersionOK l (some ly) ex v
+      (g.unique = true → UniqueOK l q ends) ∧ VersionOK l (some ly) ex v ∧ ConfirmOK l n v ex
   | .writeVersion n b v ex =>
       e.actor = .me ∧ active l n = true ∧
       (g.cas = true → (latest l n).map (fun x => x.1) = some b) ∧
       (v.kind = .cognitive → ReasonOK l v.reason) ∧
-      VersionOK l (layerOf l n) ex v
+      VersionOK l (layerOf l n) ex v ∧ ConfirmOK l n v ex
   | .endNode n why => e.actor = .me ∧ active l n = true ∧ fragAuthor l why = some .me
   | .move ns ly => e.actor = .me ∧ (∀ n ∈ ns, (created l n).isSome = true) ∧
       (g.move = true → MoveOK l ns ly)
@@ -559,5 +651,13 @@ theorem created_mem_nodeIds : ∀ {l : Log} {n : NodeId},
 
 theorem active_mem_nodeIds {l : Log} {n : NodeId} (h : active l n = true) : n ∈ nodeIds l :=
   created_mem_nodeIds (active_created h)
+
+theorem draftAt_lt : ∀ {l : Log} {d : Time} {di : DraftInfo}, draftAt l d = some di → d < l.length
+  | [], _, _, h => by simp [draftAt] at h
+  | e :: l, d, di, h => by
+    simp only [draftAt] at h
+    split at h
+    · next hd => subst hd; simp
+    · have := draftAt_lt h; simp; nomega
 
 end MyLife

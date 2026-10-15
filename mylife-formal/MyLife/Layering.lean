@@ -36,7 +36,7 @@ theorem citedCreated {L : Log} (hR : Reachable check L) : CitedCreated L := by
       by_cases hn : n' = nc
       · simp [hn] at hx; subst hx
         obtain ⟨s, hs, hm⟩ := hcite
-        exact created_isSome_append [_] ((hcP.2.2.2.2.2.2 s hs).2.2.2.2.1 _ hm)
+        exact created_isSome_append [_] ((hcP.2.2.2.2.2.2.1 s hs).2.2.2.2.1 _ hm)
       · simp [hn] at hx
         exact created_isSome_append [_] (ih nc xv nd hx hcite)
     case writeVersion n' b v ex =>
@@ -45,7 +45,7 @@ theorem citedCreated {L : Log} (hR : Reachable check L) : CitedCreated L := by
       by_cases hn : n' = nc
       · simp [hn] at hx; subst hx
         obtain ⟨s, hs, hm⟩ := hcite
-        exact created_isSome_append [_] ((hcP.2.2.2.2 s hs).2.2.2.2.1 _ hm)
+        exact created_isSome_append [_] ((hcP.2.2.2.2.1 s hs).2.2.2.2.1 _ hm)
       · simp [hn] at hx
         exact created_isSome_append [_] (ih nc xv nd hx hcite)
     all_goals
@@ -64,7 +64,7 @@ theorem layerInv {L : Log} (hR : Reachable check L) : LayerInv L := by
     cases op
     case newNode n' ly q src ends v ex =>
       simp only [CheckP] at hcP
-      obtain ⟨_, hnew, _, _, _, _, hver⟩ := hcP
+      obtain ⟨_, hnew, _, _, _, _, hver, _⟩ := hcP
       simp only [active] at hact
       simp only [layerOf] at hly ⊢
       simp only [latest] at hx
@@ -90,7 +90,7 @@ theorem layerInv {L : Log} (hR : Reachable check L) : LayerInv L := by
         simp [hm', hw]
     case writeVersion n' b v ex =>
       simp only [CheckP] at hcP
-      obtain ⟨_, _, _, _, hver⟩ := hcP
+      obtain ⟨_, _, _, _, hver, _⟩ := hcP
       simp only [active] at hact
       simp only [layerOf] at hly ⊢
       simp only [latest] at hx

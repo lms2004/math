@@ -137,7 +137,8 @@ def quietOp : Op → Bool
   | .writeVersion _ _ v _ => v.kind == .tidy
   | .link _ _ => true
   | .addSource _ _ _ => true
-  | .draft _ _ _ => true
+  | .draft _ _ _ _ => true
+  | .rejectDraft _ => true
   | .outcome _ _ => true
   | .saveSource _ _ => true
   | .saveRecord _ => true

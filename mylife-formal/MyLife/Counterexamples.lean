@@ -2,13 +2,16 @@ import MyLife.Layering
 import MyLife.Identity
 import MyLife.Facts
 import MyLife.Dag
+import MyLife.Review
+import MyLife.Deletion
 
 /-!
 # 反例和示例
 
 `checkG g` 可以单独关掉某个守卫。第 1–4 节每个反例都是一条具体的日志：
 关掉守卫时它是合规状态，却违反了对应的不变量；守卫打开时，那一步写入会被拒绝。
-第 5 节说明活视图不是 DAG；第 6、7 节是按我的决定（作者更正、权威作者）给的示例。
+第 5 节说明活视图不是 DAG；第 6、7 节是按我的决定（作者更正、权威作者）给的示例；
+第 8 节是过目稿子的规则，第 9 节是删除清单。
 所有结论都由 Lean 用 `decide` 直接算出。
 -/
 
@@ -31,7 +34,7 @@ theorem reachableB_sound {chk : Log → Entry → Bool} : ∀ {l : Log}, reachab
 def saveMine : Entry := ⟨.saveSource 1 [⟨10, .me, 100⟩], .program⟩
 def saveExt : Entry := ⟨.saveSource 2 [⟨20, .ext 7, 200⟩], .program⟩
 def sent (cites : List Target) : Sentence := ⟨100, 10, none, cites, false⟩
-def ver (cites : List Target) : Version := ⟨.cognitive, true, some 10, [sent cites]⟩
+def ver (cites : List Target) : Version := ⟨.cognitive, true, some 10, [sent cites], none⟩
 def mkNode (n : NodeId) (ly : Layer) (q : Question) (cites : List Target) : Entry :=
   ⟨.newNode n ly q [] [] (ver cites) [], .me⟩
 
@@ -161,5 +164,54 @@ theorem overridden_listed_example :
     (fstate authLog key).conflicts = [] ∧
     (fstate authLog key).overridden = [4] :=
   ⟨reachableB_sound (by decide), by decide, by decide, by decide⟩
+
+/-! ## 8. 过目里的稿子 -/
+
+/-- 片段 30 是 AI 的话（一份分析稿） -/
+def saveAI : Entry := ⟨.saveSource 3 [⟨30, .ai, 300⟩], .program⟩
+def aiSent : Sentence := ⟨300, 30, some .guess, [], false⟩
+def draftVer : Version := ⟨.cognitive, true, none, [aiSent], none⟩
+
+/-- 节点 1 当前版本是我的一句原话；Agent 起草了一份稿子（时刻 3） -/
+def reviewLog : Log :=
+  [⟨.draft 1 30 draftVer none, .agent⟩, mkNode 1 .personal 1 [], saveAI, saveMine]
+
+theorem review_log_ok : Reachable check reviewLog := reachableB_sound (by decide)
+
+/-- 已有待定稿子时另起一份：拒绝；并进去重新起草（指向旧稿子）：允许 -/
+theorem one_pending_draft :
+    check reviewLog ⟨.draft 1 30 draftVer none, .agent⟩ = false ∧
+    check reviewLog ⟨.draft 1 30 draftVer (some 3), .agent⟩ = true := ⟨by decide, by decide⟩
+
+/-- 我不要这份稿子以后，Agent 再提出同样的句子：拒绝 -/
+theorem rejected_not_reproposed :
+    check (⟨.rejectDraft 3, .me⟩ :: reviewLog) ⟨.draft 1 30 draftVer none, .agent⟩ = false := by
+  decide
+
+/-- 确认稿子时删掉我的原话：拒绝；我在逐句确认里单独决定改它：允许；保留它：允许 -/
+def confirmVer (body : List Sentence) : Version := ⟨.cognitive, true, some 10, body, some 3⟩
+
+theorem my_sentence_needs_my_decision :
+    check reviewLog ⟨.writeVersion 1 2 (confirmVer [aiSent]) [], .me⟩ = false ∧
+    check reviewLog ⟨.writeVersion 1 2 (confirmVer [aiSent]) [sent []], .me⟩ = true ∧
+    check reviewLog ⟨.writeVersion 1 2 (confirmVer [sent [], aiSent]) [], .me⟩ = true :=
+  ⟨by decide, by decide, by decide⟩
+
+/-- 稿子起草之后节点有了新版本（时刻 4），再确认这份稿子：拒绝（只能重新起草或不要） -/
+theorem stale_draft_rejected :
+    check (⟨.writeVersion 1 2 (ver [.frag 10]) [], .me⟩ :: reviewLog)
+      ⟨.writeVersion 1 4 (confirmVer [sent [], aiSent]) [], .me⟩ = false := by
+  decide
+
+/-! ## 9. 删除清单 -/
+
+/-- 外部资料（原件 2，时刻 1）抽出一条事实（时刻 2）；节点 1 的一句话（出处是我的话，原件 1）引用了这条事实（时刻 3） -/
+def deleteLog : Log :=
+  [mkNode 1 .world 1 [.fact key], ⟨.addFact ⟨key, 12, 20⟩, .agent⟩, saveExt, saveMine]
+
+/-- 删原件 2：列出它本身、从它抽的事实、引用这条事实的版本；删原件 1：列出它本身和出处在它里面的版本 -/
+theorem deletion_lists :
+    deletionList deleteLog 2 = [1, 3, 2] ∧ deletionList deleteLog 1 = [0, 3] :=
+  ⟨by decide, by decide⟩
 
 end MyLife.Counterexamples

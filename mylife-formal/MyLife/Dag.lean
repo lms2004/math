@@ -24,6 +24,7 @@ def recT (l : Log) (t : Time) : List Time := if (recordAt l t).isSome then [t] e
 def keyT (l : Log) (k : FactKey) : List Time :=
   (records l).filterMap (fun x => if x.2.key = k then some x.1 else none)
 def hashT (l : Log) (h : Hash) : List Time := (hashTime l h).toList
+def draftT (l : Log) (d : Time) : List Time := if (draftAt l d).isSome then [d] else []
 
 def targetT (l : Log) : Target → List Time
   | .node m => nodeT l m
@@ -37,6 +38,9 @@ def versionT (l : Log) (v : Version) : List Time :=
   v.body.flatMap (sentenceT l) ++
     (match v.reason with
      | some p => fragT l p
+     | none => []) ++
+    (match v.fromDraft with
+     | some d => draftT l d
      | none => [])
 
 /-- 写入 e（写在日志 l 之上）引用的更早写入的时间 -/
@@ -51,7 +55,11 @@ def refs (l : Log) (e : Entry) : List Time :=
   | .adopt _ t => recT l t
   | .setAuthority k _ => keyT l k
   | .link p n => fragT l p ++ nodeT l n
-  | .draft n p v => fragT l p ++ nodeT l n ++ versionT l v
+  | .draft n p v r => fragT l p ++ nodeT l n ++ versionT l v ++
+      (match r with
+       | some d => draftT l d
+       | none => [])
+  | .rejectDraft d => draftT l d
   | .newNode _ _ _ src ends v _ => src.flatMap (nodeT l) ++ ends.flatMap (nodeT l) ++ versionT l v
   | .writeVersion n _ v _ => nodeT l n ++ versionT l v
   | .endNode n why => nodeT l n ++ fragT l why
@@ -71,6 +79,16 @@ theorem hashTime_lt : ∀ {l : Log} {h : Hash} {t : Time}, hashTime l h = some t
         · cases hh; simp
         · cases hh
       · cases hh
+
+theorem draftT_lt {l : Log} {d j : Time} (h : j ∈ draftT l d) : j < l.length := by
+  unfold draftT at h
+  split at h
+  · next hs =>
+    simp at h; subst h
+    cases hd : draftAt l j with
+    | none => simp [hd] at hs
+    | some di => exact draftAt_lt hd
+  · simp at h
 
 theorem fragT_lt {l : Log} {p : FragId} {j : Time} (h : j ∈ fragT l p) : j < l.length := by
   unfold fragT at h
@@ -123,11 +141,14 @@ theorem sentenceT_lt {l : Log} {s : Sentence} {j : Time} (h : j ∈ sentenceT l 
 
 theorem versionT_lt {l : Log} {v : Version} {j : Time} (h : j ∈ versionT l v) : j < l.length := by
   unfold versionT at h
-  rw [List.mem_append, List.mem_flatMap] at h
-  rcases h with ⟨s, _, hs⟩ | h
+  rw [List.mem_append, List.mem_append, List.mem_flatMap] at h
+  rcases h with (⟨s, _, hs⟩ | h) | h
   · exact sentenceT_lt hs
   · split at h
     · exact fragT_lt h
+    · simp at h
+  · split at h
+    · exact draftT_lt h
     · simp at h
 
 /-- 每条引用都指向更早的写入 -/
@@ -149,10 +170,14 @@ theorem refs_lt {l : Log} {e : Entry} {j : Time} (h : j ∈ refs l e) : j < l.le
   case setAuthority => exact keyT_lt h
   case link => rcases h with h | h; exact fragT_lt h; exact nodeT_lt h
   case draft =>
-    rcases h with (h | h) | h
+    rcases h with ((h | h) | h) | h
     · exact fragT_lt h
     · exact nodeT_lt h
     · exact versionT_lt h
+    · split at h
+      · exact draftT_lt h
+      · simp at h
+  case rejectDraft => exact draftT_lt h
   case newNode =>
     rcases h with (h | h) | h
     · exact hfm h

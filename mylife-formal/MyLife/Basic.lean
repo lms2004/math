@@ -86,6 +86,7 @@ structure Version where
   concluded : Bool              -- 认识 / 疑问
   reason : Option FragId        -- 理由：我的一句话（我的确认也存成我的话）
   body : List Sentence
+  fromDraft : Option Time       -- 这个版本确认的是哪份稿子（稿子的写入时间）；我直接写的为 none
   deriving DecidableEq, Repr
 
 /-- 一条事实记录；它的作者就是出处片段的作者（推出，不另存） -/
@@ -116,7 +117,10 @@ inductive Op where
   | adopt (k : FactKey) (t : Time)                   -- 冲突裁决：采用写入时间为 t 的事实
   | setAuthority (k : FactKey) (a : Author)          -- 定下这项属性以哪个作者为准
   | link (p : FragId) (n : NodeId)                   -- 关联：片段挂到节点
-  | draft (n : NodeId) (p : FragId) (v : Version)    -- 稿子进过目（不是真源）
+  | draft (n : NodeId) (p : FragId) (v : Version) (replaces : Option Time)
+                                                     -- 稿子进过目（不是真源）；这个节点已有待定稿子时，
+                                                     -- 新的候选并进去重新起草，replaces 指向被取代的那份
+  | rejectDraft (d : Time)                           -- 我不要这份稿子（留作记录）
   | newNode (n : NodeId) (ly : Layer) (q : Question) (src : List NodeId) (ends : List NodeId)
       (v : Version) (explicit : List Sentence)       -- 新建（含分裂、合并、换阶段）；ends 原子地结束旧节点
   | writeVersion (n : NodeId) (base : Time) (v : Version) (explicit : List Sentence)

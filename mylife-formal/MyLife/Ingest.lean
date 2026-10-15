@@ -40,7 +40,7 @@ def candEntry (p : Frag) (l : Log) : Cand → Entry
   | .fact k v =>
     if LiveSame l k v then ⟨.addSource k v p.id, .agent⟩ else ⟨.addFact ⟨k, v, p.id⟩, .agent⟩
   | .link n => ⟨.link p.id n, .agent⟩
-  | .draft n v => ⟨.draft n p.id v, .agent⟩
+  | .draft n v => ⟨.draft n p.id v (pendingFor l n).head?, .agent⟩
 
 def absorb (p : Frag) (l : Log) (c : Cand) : Log := tryStep l (candEntry p l c)
 
@@ -80,7 +80,7 @@ def opFrag : Op → Option FragId
   | .addFact r => some r.origin
   | .addSource _ _ p => some p
   | .link p _ => some p
-  | .draft _ p _ => some p
+  | .draft _ p _ _ => some p
   | _ => none
 
 /-! ## 只追加的扩展 -/

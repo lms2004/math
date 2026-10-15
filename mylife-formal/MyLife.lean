@@ -8,5 +8,8 @@ import MyLife.Identity
 import MyLife.Facts
 import MyLife.Propagation
 import MyLife.Ingest
+import MyLife.Review
+import MyLife.Reingest
+import MyLife.Deletion
 import MyLife.Counterexamples
 import MyLife.Audit

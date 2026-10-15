@@ -1,5 +1,8 @@
 import MyLife.Propagation
 import MyLife.Ingest
+import MyLife.Review
+import MyLife.Reingest
+import MyLife.Deletion
 import MyLife.Counterexamples
 
 /-!
@@ -57,6 +60,22 @@ open MyLife MyLife.Counterexamples
 #print axioms ingest_only_new
 #print axioms ingest_covers
 #print axioms ingest_idempotent
+-- 过目里的稿子
+#print axioms pending_unique
+#print axioms rejected_never_reproposed
+#print axioms confirmed_draft_fresh
+#print axioms my_sentences_kept
+#print axioms draft_leaves_review_only_by
+-- 重新吸收
+#print axioms reingest_reachable
+#print axioms reingest_body_untouched
+#print axioms reingest_voids_old
+#print axioms reingestAffected_complete
+-- 删除
+#print axioms affected_iff
+#print axioms deletionList_exact
+#print axioms delete_keeps_structure
+#print axioms ingest_restores_deleted
 -- 反例
 #print axioms move_guard_needed
 #print axioms atomic_end_needed
@@ -68,3 +87,9 @@ open MyLife MyLife.Counterexamples
 #print axioms atomic_merge_ok
 #print axioms correction_flags_sentence
 #print axioms overridden_listed_example
+#print axioms review_log_ok
+#print axioms one_pending_draft
+#print axioms rejected_not_reproposed
+#print axioms my_sentence_needs_my_decision
+#print axioms stale_draft_rejected
+#print axioms deletion_lists

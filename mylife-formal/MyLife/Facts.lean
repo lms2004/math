@@ -270,7 +270,8 @@ def cognitionOp : Op → Bool
   | .move _ _ => true
   | .ack _ _ => true
   | .link _ _ => true
-  | .draft _ _ _ => true
+  | .draft _ _ _ _ => true
+  | .rejectDraft _ => true
   | _ => false
 
 /-- **定理（认识变了不回头改依据）**：认识层的写入不改变片段、事实记录、作废记录和任何事实的当前值 -/
