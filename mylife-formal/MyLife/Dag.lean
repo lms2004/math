@@ -55,9 +55,10 @@ def refs (l : Log) (e : Entry) : List Time :=
   | .newNode _ _ _ src ends v _ => src.flatMap (nodeT l) ++ ends.flatMap (nodeT l) ++ versionT l v
   | .writeVersion n _ v _ => nodeT l n ++ versionT l v
   | .endNode n why => nodeT l n ++ fragT l why
-  | .move n _ => nodeT l n
+  | .move ns _ => ns.flatMap (nodeT l)
   | .ack n t => nodeT l n ++ targetT l t
   | .deleteRecord h => hashT l h
+  | .correctAuthor p _ => fragT l p
 
 theorem hashTime_lt : ∀ {l : Log} {h : Hash} {t : Time}, hashTime l h = some t → t < l.length
   | [], _, _, hh => by simp [hashTime] at hh
@@ -159,9 +160,10 @@ theorem refs_lt {l : Log} {e : Entry} {j : Time} (h : j ∈ refs l e) : j < l.le
     · exact versionT_lt h
   case writeVersion => rcases h with h | h; exact nodeT_lt h; exact versionT_lt h
   case endNode => rcases h with h | h; exact nodeT_lt h; exact fragT_lt h
-  case move => exact nodeT_lt h
+  case move => exact hfm h
   case ack => rcases h with h | h; exact nodeT_lt h; exact targetT_lt h
   case deleteRecord => exact hashT_lt h
+  case correctAuthor => exact fragT_lt h
 
 /-- 存储层的引用图：写入时间为 i 的那条写入引用了写入时间为 j 的那条 -/
 def Edge (L : Log) (i j : Time) : Prop :=

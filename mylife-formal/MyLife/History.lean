@@ -62,6 +62,11 @@ theorem view_stable {α : Type} (f : Log → α) (new : Log) {L : Log} {t : Time
     f (snap (new ++ L) t) = f (snap L t) := by
   rw [snap_append new h]
 
+/-- 写入 e 那一刻的快照，就是 e 之前的日志 -/
+theorem snap_split (l₁ : Log) (e : Entry) (l : Log) : snap (l₁ ++ e :: l) l.length = l := by
+  have : l₁ ++ e :: l = (l₁ ++ [e]) ++ l := by simp
+  rw [this, snap_append _ (Nat.le_refl _), snap_self]
+
 theorem Reachable.of_suffix {chk : Log → Entry → Bool} {l L : Log}
     (hR : Reachable chk L) (h : l <:+ L) : Reachable chk l := by
   obtain ⟨pre, rfl⟩ := h

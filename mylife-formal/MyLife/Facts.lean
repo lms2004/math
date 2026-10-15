@@ -90,13 +90,15 @@ theorem authority_supersedes {l : Log} {e : Entry} {r : FactRec} {k : FactKey} {
   · simp [fstep, hop, hk, hnv, hcur, hs]
   · simp [fstep, hop, hk, hnv, hcur, hs, hauth, hb]
 
-/-- 设计的直接后果（值得确认是不是想要的）：定了权威作者以后，其他作者的不同值既不改当前值，
-    也不再作为冲突提出，状态完全不变 -/
-theorem authority_silences_others {l : Log} {e : Entry} {r : FactRec} {k : FactKey} {old : Cur}
+/-- 定了以哪个作者为准以后，其他作者的不同值不改当前值、不作为冲突提出，
+    但会列进“被权威作者盖过的说法”，查得到（我的决定：不提醒，但查得到） -/
+theorem authority_overrides_listed {l : Log} {e : Entry} {r : FactRec} {k : FactKey} {old : Cur}
     {b : Author} (hl : Reachable check l) (hop : e.op = .addFact r) (hk : r.key = k)
     (hcur : (fstate l k).cur = some old) (hdiff : old.author ≠ fragAuthor l r.origin)
     (hauth : authority l k = some b) (hb : fragAuthor l r.origin ≠ some b) :
-    fstate (e :: l) k = fstate l k := by
+    (fstate (e :: l) k).cur = (fstate l k).cur ∧
+    (fstate (e :: l) k).conflicts = (fstate l k).conflicts ∧
+    l.length ∈ (fstate (e :: l) k).overridden := by
   have hnv : l.length ∉ voidedTimes l := fun h => Nat.lt_irrefl _ (voided_lt hl _ h)
   rw [fstate_cons_of_not_void k (by simp [hop])]
   have hb' : ¬ (some b = fragAuthor l r.origin) := fun h => hb h.symm
@@ -147,7 +149,10 @@ theorem current_not_ai {L : Log} (hR : Reachable check L) (k : FactKey) :
       simp only [CheckP, hop] at hcP
       exact hcP.1
     · rw [h]
-      exact (facts_traceable_not_ai hl (recordAt_mem hr)).2
+      simp only [CheckP, hop] at hcP
+      obtain ⟨_, _, _, _, hok⟩ := hcP
+      simp only [hr, OptAll] at hok
+      exact hok
 
 /-! ## 冲突只能由我解决 -/
 
@@ -187,7 +192,7 @@ theorem fstateAux_congr {V V' : List Time} {k : FactKey} : ∀ {l : Log}, Reacha
       · simp [fstep, hk]
     case adopt k' t =>
       simp only [CheckP] at hcP
-      obtain ⟨_, _, hkey, _⟩ := hcP
+      obtain ⟨_, _, hkey, _, _⟩ := hcP
       by_cases hk : k' = k
       · cases hr : recordAt l t with
         | none => simp [fstep, hk, hr]

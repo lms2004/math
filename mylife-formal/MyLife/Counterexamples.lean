@@ -4,11 +4,12 @@ import MyLife.Facts
 import MyLife.Dag
 
 /-!
-# 反例：每个守卫都是必要的，以及活视图不是 DAG
+# 反例和示例
 
-`checkG g` 可以单独关掉某个守卫。下面每个反例都是一条具体的日志：
+`checkG g` 可以单独关掉某个守卫。第 1–4 节每个反例都是一条具体的日志：
 关掉守卫时它是合规状态，却违反了对应的不变量；守卫打开时，那一步写入会被拒绝。
-这些守卫在原设计里没有写明，是形式化时发现的。
+第 5 节说明活视图不是 DAG；第 6、7 节是按我的决定（作者更正、权威作者）给的示例。
+所有结论都由 Lean 用 `decide` 直接算出。
 -/
 
 namespace MyLife.Counterexamples
@@ -36,9 +37,9 @@ def mkNode (n : NodeId) (ly : Layer) (q : Question) (cites : List Target) : Entr
 
 /-! ## 1. 移层守卫：没有它，“世界模型不引用个人认知模型”会被一次移动打破 -/
 
-/-- 节点 1、2 都在世界模型，2 引用 1；然后把 1 移到个人模型 -/
+/-- 节点 1、2 都在世界模型，2 引用 1；然后把 1 单独移到个人模型 -/
 def moveLog : Log :=
-  [⟨.move 1 .personal, .me⟩, mkNode 2 .world 2 [.node 1], mkNode 1 .world 1 [], saveMine]
+  [⟨.move [1] .personal, .me⟩, mkNode 2 .world 2 [.node 1], mkNode 1 .world 1 [], saveMine]
 
 theorem move_guard_needed :
     Reachable (checkG { move := false }) moveLog ∧ ¬ LayerInv moveLog := by
@@ -46,7 +47,16 @@ theorem move_guard_needed :
   have := h 2 (2, ver [.node 1]) 1 (by decide) (by decide) (by decide) (by decide)
   exact absurd this (by decide)
 
-theorem move_guard_rejects : check moveLog.tail ⟨.move 1 .personal, .me⟩ = false := by decide
+theorem move_guard_rejects : check moveLog.tail ⟨.move [1] .personal, .me⟩ = false := by decide
+
+/-- 被拒时，程序列出挡住它的引用者：节点 2 -/
+theorem move_blockers_listed : moveBlockers moveLog.tail [1] = [2] := by decide
+
+/-- 我的决定：在同一次写入里把节点 1 和引用它的节点 2 一起移过去，是允许的 -/
+def groupMoveLog : Log :=
+  [⟨.move [1, 2] .personal, .me⟩, mkNode 2 .world 2 [.node 1], mkNode 1 .world 1 [], saveMine]
+
+theorem group_move_ok : Reachable check groupMoveLog := reachableB_sound (by decide)
 
 /-! ## 2. 原子结束：没有它，合并 / 换阶段时同一个问题会有两个有效节点 -/
 
@@ -122,5 +132,34 @@ theorem live_graph_may_cycle :
 
 /-- 但存储层仍然无环：节点 1 的新版本（时刻 3）固定引用写入那一刻节点 2 的版本（时刻 2），后者固定引用节点 1 的旧版本（时刻 1） -/
 example : ¬ Relation.TransGen (Edge cycleLog) 3 3 := storage_acyclic cycleLog 3
+
+/-! ## 6. 作者更正：原来算原话的句子，更正后进过目 -/
+
+/-- 节点 1 的一句话出处是片段 10（存入时标为我的话）；之后我把片段 10 的作者更正为 AI -/
+def correctLog : Log :=
+  [⟨.correctAuthor 10 .ai, .me⟩, mkNode 1 .personal 1 [], saveMine]
+
+theorem correction_flags_sentence :
+    Reachable check correctLog ∧
+    drafter (snap correctLog 1) (sent []) = some .verbatim ∧
+    drafter correctLog (sent []) = some .aiDrafted ∧
+    AuthorFlag correctLog 1 (sent []) :=
+  ⟨reachableB_sound (by decide), by decide, by decide, ⟨10, Or.inl rfl, by decide⟩⟩
+
+/-! ## 7. 权威作者：其他作者的不同值不提醒，但查得到 -/
+
+/-- 这项属性定了以外部发布者 7 为准；它说 12，之后我说 10 -/
+def authLog : Log :=
+  [⟨.addFact ⟨key, 10, 10⟩, .agent⟩,
+   ⟨.addFact ⟨key, 12, 20⟩, .agent⟩,
+   ⟨.setAuthority key (.ext 7), .me⟩,
+   saveExt, saveMine]
+
+theorem overridden_listed_example :
+    Reachable check authLog ∧
+    (fstate authLog key).cur.map (fun c => c.record.value) = some 12 ∧
+    (fstate authLog key).conflicts = [] ∧
+    (fstate authLog key).overridden = [4] :=
+  ⟨reachableB_sound (by decide), by decide, by decide, by decide⟩
 
 end MyLife.Counterexamples

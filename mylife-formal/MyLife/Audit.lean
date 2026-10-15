@@ -24,6 +24,9 @@ open MyLife MyLife.Counterexamples
 #print axioms added_sources_not_ai
 #print axioms sentence_traceable
 #print axioms degree_rules
+#print axioms drafter_changes_only_by_correction
+#print axioms sentence_ok_now_or_flagged
+#print axioms fact_ok_now_or_flagged
 #print axioms cognitive_has_reason
 #print axioms decisions_confirmed
 -- 分层
@@ -38,7 +41,7 @@ open MyLife MyLife.Counterexamples
 #print axioms conflict_keeps_current
 #print axioms same_author_supersedes
 #print axioms authority_supersedes
-#print axioms authority_silences_others
+#print axioms authority_overrides_listed
 #print axioms current_not_ai
 #print axioms conflicts_only_me
 #print axioms evidence_unaffected_by_cognition
@@ -60,3 +63,8 @@ open MyLife MyLife.Counterexamples
 #print axioms cas_needed
 #print axioms void_guard_needed
 #print axioms live_graph_may_cycle
+#print axioms move_blockers_listed
+#print axioms group_move_ok
+#print axioms atomic_merge_ok
+#print axioms correction_flags_sentence
+#print axioms overridden_listed_example

@@ -101,37 +101,37 @@ theorem layerInv {L : Log} (hR : Reachable check L) : LayerInv L := by
         exact (hver s hs).2.2.2.2.2.1 hly _ hm
       · simp [hn] at hx
         exact ih nc xv nd hact hly hx hcite
-    case move n' ly =>
+    case move ns ly =>
       simp only [CheckP] at hcP
       obtain ⟨_, _, hmove⟩ := hcP
       have hmove := hmove trivial
       simp only [active] at hact
       simp only [latest] at hx
       simp only [layerOf] at hly ⊢
-      by_cases hn : n' = nc
-      · subst hn
-        simp at hly; subst hly
-        simp only [MoveOK, hx, OptAll] at hmove
-        obtain ⟨s, hs, hm⟩ := hcite
-        rcases hmove s hs _ hm with h | h
-        · cases h; simp
+      by_cases hn : nc ∈ ns
+      · simp [hn] at hly; subst hly
+        simp only [MoveOK] at hmove
+        have hm := hmove nc hn
+        simp only [hx, OptAll] at hm
+        obtain ⟨s, hs, hsm⟩ := hcite
+        rcases hm s hs _ hsm with ⟨m, hm', hmeq⟩ | h
+        · injection hmeq with hmeq; subst hmeq; simp [hm']
         · simp only [WorldTarget] at h
-          by_cases hm' : n' = nd
-          · simp [hm']
-          · simp [hm', h]
+          by_cases hd : nd ∈ ns
+          · simp [hd]
+          · simp [hd, h]
       · simp [hn] at hly
         have hw := ih nc xv nd hact hly hx hcite
-        by_cases hm' : n' = nd
-        · subst hm'
-          cases ly with
-          | world => simp
+        by_cases hd : nd ∈ ns
+        · cases ly with
+          | world => simp [hd]
           | personal =>
             exfalso
             simp only [MoveOK] at hmove
-            have := hmove nc (active_mem_nodeIds hact) (fun h => hn h.symm) hact hly
+            have := hmove nc (active_mem_nodeIds hact) hn hact hly
             simp only [hx, OptAll] at this
-            exact this hcite
-        · simp [hm', hw]
+            exact this nd hd hcite
+        · simp [hd, hw]
     case endNode n' why =>
       simp only [active] at hact
       simp only [layerOf] at hly ⊢

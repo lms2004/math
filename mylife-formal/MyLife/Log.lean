@@ -34,8 +34,19 @@ def fragAt : Log → FragId → Option (Time × Frag)
       | some f => some (l.length, f)
       | none => none
 
+/-- 最近一次作者更正 -/
+def attributionOf : Log → FragId → Option Author
+  | [], _ => none
+  | e :: l, p =>
+    match e.op with
+    | .correctAuthor q a => if q = p then some a else attributionOf l p
+    | _ => attributionOf l p
+
+/-- 片段现在的作者：有作者更正就用最近一次更正，否则是存入时标的作者 -/
 def fragAuthor (l : Log) (p : FragId) : Option Author :=
-  (fragAt l p).map (fun r => r.2.author)
+  match fragAt l p with
+  | none => none
+  | some (_, f) => some ((attributionOf l p).getD f.author)
 
 def hashSaved : Log → Hash → Bool
   | [], _ => false
@@ -112,16 +123,17 @@ structure Cur where
   author : Option Author
   deriving DecidableEq, Repr
 
-/-- 一项属性的状态：当前值 + 等我裁决的冲突（冲突记录的写入时间） -/
+/-- 一项属性的状态：当前值 + 等我裁决的冲突 + 被权威作者盖过的不同说法（都是记录的写入时间） -/
 structure FState where
   cur : Option Cur
   conflicts : List Time
+  overridden : List Time
   deriving DecidableEq, Repr
 
 /-- 一条写入对事实 k 的状态的影响（V 是已作废的写入时间）：
     * 第一个值直接成为当前值；
     * 同一作者的新值接替旧值；
-    * 定了以哪个作者为准的，这个作者的新值直接接替，其他作者的不同值不再提出；
+    * 定了以哪个作者为准的，这个作者的新值直接接替；其他作者的不同值不提醒，但列进“被盖过的说法”，查得到；
     * 其余不同作者给出不同的值：标为冲突，当前值保持不变，交给我；
     * 我裁决（采用某条）后，冲突清空。 -/
 def fstep (V : List Time) (l : Log) (e : Entry) (k : FactKey) (s : FState) : FState :=
@@ -138,19 +150,19 @@ def fstep (V : List Time) (l : Log) (e : Entry) (k : FactKey) (s : FState) : FSt
           | some b =>
             if some b = fragAuthor l r.origin then
               { s with cur := some ⟨l.length, r, fragAuthor l r.origin⟩ }
-            else s
+            else { s with overridden := l.length :: s.overridden }
           | none => { s with conflicts := l.length :: s.conflicts }
     else s
   | .adopt k' t =>
     if k' = k ∧ t ∉ V then
       match recordAt l t with
-      | some r => { cur := some ⟨t, r, fragAuthor l r.origin⟩, conflicts := [] }
+      | some r => { s with cur := some ⟨t, r, fragAuthor l r.origin⟩, conflicts := [] }
       | none => s
     else s
   | _ => s
 
 def fstateAux (V : List Time) : Log → FactKey → FState
-  | [], _ => ⟨none, []⟩
+  | [], _ => ⟨none, [], []⟩
   | e :: l, k => fstep V l e k (fstateAux V l k)
 
 /-- 事实 k 的状态：作废的记录整条跳过，其余按写入顺序走一遍 -/
@@ -184,7 +196,7 @@ def layerOf : Log → NodeId → Option Layer
   | e :: l, n =>
     match e.op with
     | .newNode m ly _ _ _ _ _ => if m = n then some ly else layerOf l n
-    | .move m ly => if m = n then some ly else layerOf l n
+    | .move ns ly => if n ∈ ns then some ly else layerOf l n
     | _ => layerOf l n
 
 /-- 有效 / 结束 -/
@@ -285,15 +297,21 @@ def UniqueOK (l : Log) (q : Question) (ends : List NodeId) : Prop :=
 instance (l : Log) (q : Question) (ends : List NodeId) : Decidable (UniqueOK l q ends) := by
   unfold UniqueOK; infer_instance
 
-/-- 移层守卫：移到个人模型时，没有别的有效世界节点引用它；移到世界模型时，它引用的节点都在世界模型 -/
-def MoveOK (l : Log) (n : NodeId) : Layer → Prop
-  | .personal => ∀ m ∈ nodeIds l, m ≠ n → active l m = true → layerOf l m = some .world →
-      OptAll (latest l m) (fun x => ¬ Cites x.2 (.node n))
-  | .world => OptAll (latest l n) (fun x => ∀ s ∈ x.2.body, ∀ t ∈ s.cites,
-      t = .node n ∨ WorldTarget l t)
+/-- 移层守卫（一次可以移一组）：移到个人模型时，组外没有有效的世界节点引用组里的节点；
+    移到世界模型时，组里节点引用的节点要么也在组里，要么已经在世界模型 -/
+def MoveOK (l : Log) (ns : List NodeId) : Layer → Prop
+  | .personal => ∀ m ∈ nodeIds l, m ∉ ns → active l m = true → layerOf l m = some .world →
+      OptAll (latest l m) (fun x => ∀ n ∈ ns, ¬ Cites x.2 (.node n))
+  | .world => ∀ n ∈ ns, OptAll (latest l n) (fun x => ∀ s ∈ x.2.body, ∀ t ∈ s.cites,
+      (∃ m ∈ ns, t = .node m) ∨ WorldTarget l t)
 
-instance (l : Log) (n : NodeId) (ly : Layer) : Decidable (MoveOK l n ly) := by
+instance (l : Log) (ns : List NodeId) (ly : Layer) : Decidable (MoveOK l ns ly) := by
   cases ly <;> unfold MoveOK <;> infer_instance
+
+/-- 移到个人模型被拒时，程序列出挡住它的引用者：组外引用组里节点的有效世界节点 -/
+def moveBlockers (l : Log) (ns : List NodeId) : List NodeId :=
+  (nodeIds l).filter (fun m => decide (m ∉ ns ∧ active l m = true ∧ layerOf l m = some .world ∧
+    OptAll (latest l m) (fun x => ∃ n ∈ ns, Cites x.2 (.node n))))
 
 /-- 认知版本的理由：我的一句话（包括我对稿子的确认，存成我的话） -/
 def ReasonOK (l : Log) (r : Option FragId) : Prop :=
@@ -322,7 +340,7 @@ def CheckP (g : Guards) (l : Log) (e : Entry) : Prop :=
       OptAll (recordAt l t) (fun r => e.actor ≠ .me → g.void = true → (fstate l r.key).conflicts = [])
   | .adopt k t =>
       e.actor = .me ∧ (recordAt l t).isSome = true ∧ OptAll (recordAt l t) (fun r => r.key = k) ∧
-      t ∉ voidedTimes l
+      t ∉ voidedTimes l ∧ OptAll (recordAt l t) (fun r => isMeOrExt (fragAuthor l r.origin) = true)
   | .setAuthority _ _ => e.actor = .me
   | .link p n => (fragAt l p).isSome = true ∧ (created l n).isSome = true
   | .draft _ p _ => e.actor = .agent ∧ (fragAt l p).isSome = true
@@ -336,10 +354,12 @@ def CheckP (g : Guards) (l : Log) (e : Entry) : Prop :=
       (v.kind = .cognitive → ReasonOK l v.reason) ∧
       VersionOK l (layerOf l n) ex v
   | .endNode n why => e.actor = .me ∧ active l n = true ∧ fragAuthor l why = some .me
-  | .move n ly => e.actor = .me ∧ (created l n).isSome = true ∧ (g.move = true → MoveOK l n ly)
+  | .move ns ly => e.actor = .me ∧ (∀ n ∈ ns, (created l n).isSome = true) ∧
+      (g.move = true → MoveOK l ns ly)
   | .ack n t => e.actor = .me ∧ active l n = true ∧ (latest l n).isSome = true ∧
       OptAll (latest l n) (fun x => Cites x.2 t)
   | .deleteRecord h => e.actor = .me ∧ hashSaved l h = true
+  | .correctAuthor p _ => e.actor = .me ∧ (fragAt l p).isSome = true
 
 instance (g : Guards) (l : Log) (e : Entry) : Decidable (CheckP g l e) := by
   unfold CheckP; split <;> infer_instance
@@ -397,16 +417,12 @@ theorem fragAt_lt : ∀ {l : Log} {p : FragId} {t : Time} {f : Frag},
       · cases h; simp
       · cases h
 
-theorem fragAuthor_append_of_some {l : Log} {p : FragId} {a : Author} (ext : Log)
-    (h : fragAuthor l p = some a) : fragAuthor (ext ++ l) p = some a := by
-  unfold fragAuthor at *
+theorem fragAuthor_isSome {l : Log} {p : FragId} {a : Author} (h : fragAuthor l p = some a) :
+    ∃ r, fragAt l p = some r := by
+  unfold fragAuthor at h
   cases hr : fragAt l p with
   | none => simp [hr] at h
-  | some r => rw [fragAt_append_of_some ext hr]; simpa [hr] using h
-
-theorem fragAuthor_cons_of_some {l : Log} {p : FragId} {a : Author} (e : Entry)
-    (h : fragAuthor l p = some a) : fragAuthor (e :: l) p = some a :=
-  fragAuthor_append_of_some [e] h
+  | some r => exact ⟨r, rfl⟩
 
 theorem fragAt_isSome_append {l : Log} {p : FragId} (ext : Log)
     (h : (fragAt l p).isSome = true) : (fragAt (ext ++ l) p).isSome = true := by

@@ -122,9 +122,10 @@ inductive Op where
   | writeVersion (n : NodeId) (base : Time) (v : Version) (explicit : List Sentence)
                                                      -- 确认稿子，写入新版本；base 是稿子基于的版本
   | endNode (n : NodeId) (why : FragId)              -- 结束节点，原因是我的一句话
-  | move (n : NodeId) (ly : Layer)                   -- 节点在世界 / 个人之间调整位置
+  | move (ns : List NodeId) (ly : Layer)             -- 一组节点在世界 / 个人之间调整位置（一次写入）
   | ack (n : NodeId) (t : Target)                    -- 引用跟上了（“确认不用改”）
   | deleteRecord (h : Hash)                          -- 删除记录（内容从内容库移除，不含原内容）
+  | correctAuthor (p : FragId) (a : Author)          -- 作者更正：片段原件不动，追加一条更正记录
   deriving Repr
 
 structure Entry where
